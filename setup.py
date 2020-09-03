@@ -14,7 +14,7 @@ def main():
 
     setuptools.setup(
         name='simpleftpserver',
-        version='0.0.1',
+        version=version,
         author='Tamás László Hegedűs',
         author_email='tamas.laszlo.hegedus@gmail.com',
         description='A simple ftp server for serving PyFilesystem2 filesystems.',
