@@ -1,14 +1,14 @@
-SimpleFTPServer
+simpleftpserver
 ===============
 
-TODO
+A simple FTP server for serving PyFilesystem2 filesystems.
 
-To serve your local filesystem:
+Serve the current directory on your local filesystem over FTP:
 
     pip install simpleftpserver
     python -m simpleftpserver
 
-To serve an AWS S3 or Google GCS bucket:
+Serve an AWS S3 or Google GCS bucket:
 
     pip install simpleftpserver gcsfs
     python -m simpleftpserver gcs://bucket_name/
@@ -29,14 +29,26 @@ Highlights
 Requirements
 ------------
 
-Python >= 3.6 TODO
+Python >= 3.6
 
 
 Notes
 -----
 
 I had problems with gcsfs, so included a patched version in this repository. It
-can be accessed via `python -m simpleftpserver gcs-patched://bucket_name/` urls. 
+can be accessed via `python -m simpleftpserver gcs-patched://bucket_name/` urls.
+
+
+Sources
+-------
+
+https://github.com/sorgloomer/simpleftpserver
+
+
+Changelog
+-------
+
+https://github.com/sorgloomer/simpleftpserver/blob/master/CHANGELOG.md
 
 
 TODOs
