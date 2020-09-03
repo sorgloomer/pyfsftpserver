@@ -36,7 +36,7 @@ Notes
 -----
 
 I had problems with gcsfs, so included a patched version in this repository. It
-can be accessed via gcs-patched://bucket_name/ urls. 
+can be accessed via `python -m simpleftpserver gcs-patched://bucket_name/` urls. 
 
 
 TODOs
