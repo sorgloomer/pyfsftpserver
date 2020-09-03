@@ -1,8 +1,8 @@
 import logging
 from abc import ABC
 
-from simpleftpserver.base.messages import Reply, Command
-from simpleftpserver.base.prorocols.command_channel import CommandChannelContext
+from ..messages import Reply, Command
+from .command_channel import CommandChannelContext
 
 logger = logging.getLogger(__name__)
 

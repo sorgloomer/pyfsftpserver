@@ -2,8 +2,8 @@ import argparse
 import asyncio
 import logging
 
-from simpleftpserver.base.server import print_listening_message
-from simpleftpserver.with_pyfs.server import PyfsFtpServer
+from .base.server import print_listening_message
+from .with_pyfs.server import PyfsFtpServer
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +18,7 @@ def main(args=None):
 
 
 def make_argparser():
-    parser = argparse.ArgumentParser("simpleftpserver")
+    parser = argparse.ArgumentParser("pyfsftpserver")
     parser.add_argument("url", nargs='?', help="Pyfs url to be served over ftp", default="osfs://.")
     parser.add_argument("-H", "--host", help="Sets listening host", default="127.0.0.1")
     parser.add_argument("-p", "--port", help="Sets listening port", default=21, type=int)

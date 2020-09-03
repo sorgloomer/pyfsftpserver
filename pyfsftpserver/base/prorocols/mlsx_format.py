@@ -2,7 +2,7 @@ import datetime
 import re
 from typing import Iterable
 
-from simpleftpserver.base.shell import FileInfo
+from ..shell import FileInfo
 
 
 class ListFormatter:

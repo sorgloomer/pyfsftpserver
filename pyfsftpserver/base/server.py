@@ -3,9 +3,9 @@ import logging
 from abc import ABC
 from asyncio import StreamWriter, StreamReader
 
-from simpleftpserver.base import utils
-from simpleftpserver.base.context import DefaultImplementationContext
-from simpleftpserver.base.utils import get_server_address_and_port, Channel
+from . import utils
+from .context import DefaultImplementationContext
+from .utils import get_server_address_and_port, Channel
 
 logger = logging.getLogger(__name__)
 

@@ -1,6 +1,6 @@
 /build/
 /dist/
-/simpleftpserver.egg-info/
+/pyfsftpserver.egg-info/
 /MANIFEST
 
 __pycache__/

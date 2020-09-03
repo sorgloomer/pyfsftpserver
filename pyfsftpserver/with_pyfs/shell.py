@@ -6,7 +6,7 @@ import fs.base
 import fs.errors
 import fs.info
 
-from simpleftpserver.base.shell import FtpShell, DirectoryNotEmpty, FileInfo
+from ..base.shell import FtpShell, DirectoryNotEmpty, FileInfo
 from . import aioexecutor
 
 
@@ -20,7 +20,7 @@ def _offload(fn):
 def open_fs_patched(url: str):
     if url.startswith("gcs-patched://"):
         bucket_name, root_path = url[14:].split('/', 1)
-        from simpleftpserver.patches.patched_gcsfs import PatchedGCSFS
+        from pyfsftpserver.patches.patched_gcsfs import PatchedGCSFS
         return PatchedGCSFS(bucket_name, root_path=root_path)
     return pyfs.open_fs(url)
 

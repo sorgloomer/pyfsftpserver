@@ -1,17 +1,20 @@
-simpleftpserver
-===============
+pyfsftpserver
+=============
+
+![License](https://img.shields.io/badge/License-MIT-blue.svg)
+
 
 A simple FTP server for serving PyFilesystem2 filesystems.
 
 Serve the current directory on your local filesystem over FTP:
 
-    pip install simpleftpserver
-    python -m simpleftpserver
+    pip install pyfsftpserver
+    python -m pyfsftpserver
 
 Serve an AWS S3 or Google GCS bucket:
 
-    pip install simpleftpserver gcsfs
-    python -m simpleftpserver gcs://bucket_name/
+    pip install pyfsftpserver gcsfs
+    python -m pyfsftpserver gcs://bucket_name/
 
 
 Highlights
@@ -36,19 +39,19 @@ Notes
 -----
 
 I had problems with gcsfs, so included a patched version in this repository. It
-can be accessed via `python -m simpleftpserver gcs-patched://bucket_name/` urls.
+can be accessed via `python -m pyfsftpserver gcs-patched://bucket_name/` urls.
 
 
 Sources
 -------
 
-https://github.com/sorgloomer/simpleftpserver
+https://github.com/sorgloomer/pyfsftpserver
 
 
 Changelog
 -------
 
-https://github.com/sorgloomer/simpleftpserver/blob/master/CHANGELOG.md
+https://github.com/sorgloomer/pyfsftpserver/blob/master/CHANGELOG.md
 
 
 TODOs
@@ -57,3 +60,8 @@ TODOs
  * Release to PyPI
  * Implement IPv6 extensions by rfc2428
  * Implement more extensions from rfc3659 like mdmt etc...
+
+License
+-------
+
+MIT

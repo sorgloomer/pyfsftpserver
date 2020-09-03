@@ -13,14 +13,14 @@ def main():
     print("Version:", repr(version))
 
     setuptools.setup(
-        name='simpleftpserver',
+        name='pyfsftpserver',
         version=version,
         author='Tamás László Hegedűs',
         author_email='tamas.laszlo.hegedus@gmail.com',
         description='A simple ftp server for serving PyFilesystem2 filesystems.',
         long_description=long_description,
         long_description_content_type="text/markdown",
-        url='https://github.com/sorgloomer/simpleftpserver',
+        url='https://github.com/sorgloomer/pyfsftpserver',
         packages=setuptools.find_packages(),
         classifiers=[
             'Development Status :: 3 - Alpha',
@@ -37,7 +37,7 @@ def main():
 
 
         license='MIT',
-        download_url='https://github.com/sorgloomer/simpleftpserver/archive/v0.0.1.tar.gz',
+        download_url='https://github.com/sorgloomer/pyfsftpserver/archive/v0.0.1.tar.gz',
         install_requires=[
             'fs',
         ],
@@ -47,7 +47,7 @@ def main():
 
 def read_version():
     try:
-        txt = (HERE / 'simpleftpserver' / '__init__.py').read_text('utf-8')
+        txt = (HERE / 'pyfsftpserver' / '__init__.py').read_text('utf-8')
         version = re.findall(r"^__version__ = ([^\n]*)$", txt, re.M)[0]
         version = ast.literal_eval(version)
         return version

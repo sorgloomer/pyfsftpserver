@@ -1,4 +1,4 @@
-from simpleftpserver.base.server import FtpServer
+from ..base.server import FtpServer
 
 from .shell import PyfsFtpShell
 

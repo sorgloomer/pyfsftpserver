@@ -1,6 +1,6 @@
 import asyncio
 
-from simpleftpserver.base.utils import ChannelHolder, get_server_address_and_port, Channel
+from ..utils import ChannelHolder, get_server_address_and_port, Channel
 
 
 class DataProtocol:

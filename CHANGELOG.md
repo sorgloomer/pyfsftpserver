@@ -1,7 +1,7 @@
-Changelog
-=========
+Changelog - pyfsftpserver
+=========================
 
-v0.0.2 - 2020.09.03
+v0.0.1 - 2020.09.03
 ------------------
 
  * initial release
