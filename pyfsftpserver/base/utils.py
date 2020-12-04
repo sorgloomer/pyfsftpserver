@@ -5,7 +5,7 @@ from collections import namedtuple
 from collections.abc import Awaitable
 
 
-AddressAndPort = namedtuple("AddressAndPort", ["address", "port"])
+IpEndpoint = namedtuple("AddressAndPort", ["address", "port"])
 
 
 class ChannelHolder:
@@ -39,6 +39,8 @@ class ChannelHolder:
 class Channel:
     reader: StreamReader
     writer: StreamWriter
+    local_endpoint: IpEndpoint
+    remote_endpoint: IpEndpoint
     buffer_size: int
 
     def __init__(self, reader, writer, on_write_chunk=None, buffer_size=None):
@@ -48,6 +50,8 @@ class Channel:
         self.writer = writer
         self.buffer_size = buffer_size
         self.on_write_chunk = on_write_chunk
+        self.local_endpoint = get_stream_local_endpoint(writer)
+        self.remote_endpoint = get_stream_remote_endpoint(writer)
 
     async def readuntil(self, separator=b'\n'):
         return await self.reader.readuntil(separator)
@@ -100,9 +104,26 @@ async def as_awaitable(value):
     return value
 
 
-def get_server_address_and_port(server):
-    addr, port = server.sockets[0].getsockname()
-    return AddressAndPort(address=addr, port=port)
+def get_server_endpoint(server):
+    return get_socket_endpoint(server.sockets[0])
+
+
+def get_socket_endpoint(socket):
+    addr, port = socket.getsockname()
+    return IpEndpoint(address=addr, port=port)
+
+
+def get_stream_remote_endpoint(stream):
+    return _get_stream_endpoint(stream, 'peername')
+
+
+def get_stream_local_endpoint(stream):
+    return _get_stream_endpoint(stream, 'sockname')
+
+
+def _get_stream_endpoint(stream, key):
+    addr, port = stream.get_extra_info(key)
+    return IpEndpoint(address=addr, port=port)
 
 
 DEFAULT_BUFFER_SIZE = 2 ** 14

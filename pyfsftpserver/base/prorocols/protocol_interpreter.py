@@ -1,8 +1,10 @@
 import logging
 from abc import ABC
 
-from ..messages import Reply, Command
+from pyfsftpserver.base.prorocols.data_channel import DataProtocol
 from .command_channel import CommandChannelContext
+from ..messages import Reply, Command
+from ..utils import IpEndpoint
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +22,10 @@ class ProtocolInterpreter:
         self.data_protocol = implementation_context.data_protocol_factory(
             host=host,
         )
-        self.controller = implementation_context.command_protocol_factory(data_protocol=self.data_protocol)
+        self.controller = implementation_context.command_protocol_factory(
+            data_protocol=self.data_protocol,
+            command_local_endpoint=command_channel.local_endpoint,
+        )
         self.implementation_context = implementation_context
 
     async def run(self):
@@ -113,5 +118,5 @@ class ProtocolInterpreterContext(CommandChannelContext, ABC):
     def data_protocol_factory(self, host):
         raise NotImplementedError()
 
-    def command_protocol_factory(self, data_protocol):
+    def command_protocol_factory(self, data_protocol: DataProtocol, command_local_endpoint: IpEndpoint):
         raise NotImplementedError()

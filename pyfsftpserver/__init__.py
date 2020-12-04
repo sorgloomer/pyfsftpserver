@@ -1,4 +1,4 @@
-__version__ = "0.0.1"
+__version__ = "0.1.0"
 
 from .server import main
 from .with_pyfs.server import PyfsFtpServer

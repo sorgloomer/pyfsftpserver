@@ -5,7 +5,7 @@ from asyncio import StreamWriter, StreamReader
 
 from . import utils
 from .context import DefaultImplementationContext
-from .utils import get_server_address_and_port, Channel
+from .utils import get_server_endpoint, Channel
 
 logger = logging.getLogger(__name__)
 
@@ -36,22 +36,23 @@ class FtpServer(DefaultImplementationContext, ABC):
         async with self.server:
             await self.server.serve_forever()
 
-    def get_server_address_and_port(self):
-        return get_server_address_and_port(self.server)
+    def get_server_endpoint(self):
+        return get_server_endpoint(self.server)
 
     @property
     def server_port(self):
-        return self.get_server_address_and_port().port
+        return self.get_server_endpoint().port
 
     @property
     def server_address(self):
-        return self.get_server_address_and_port().address
+        return self.get_server_endpoint().address
 
     async def _handle_client(self, reader: StreamReader, writer: StreamWriter):
         try:
-            logger.info(f"Client connected")
+            channel = Channel(reader=reader, writer=writer)
+            logger.info(f"Client connected {channel.remote_endpoint}")
             await self.protocol_interpreter_factory(
-                Channel(reader=reader, writer=writer),
+                command_channel=channel,
                 host=self.host,
             ).run()
         except Exception as ex:
@@ -59,7 +60,7 @@ class FtpServer(DefaultImplementationContext, ABC):
 
 
 def print_listening_message(server: FtpServer):
-    ap = server.get_server_address_and_port()
+    ap = server.get_server_endpoint()
     logger.info(f"Started listening on {ap.address}:{ap.port}")
 
 

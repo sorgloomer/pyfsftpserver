@@ -3,6 +3,8 @@
 # push version tag
 # create github release
 
+# pypi user is __token__
+
 python -m pip install --upgrade pip
 python -m pip install --user --upgrade setuptools wheel
 python -m pip install --user --upgrade twine

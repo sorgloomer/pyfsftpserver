@@ -1,6 +1,6 @@
 import asyncio
 
-from ..utils import ChannelHolder, get_server_address_and_port, Channel
+from ..utils import ChannelHolder, get_server_endpoint, Channel
 
 
 class DataProtocol:
@@ -9,6 +9,7 @@ class DataProtocol:
         self.host = host
         self.port = port
         self.channel_holder = ChannelHolder()
+        self.freeze_epsv = False
 
     def close(self):
         self.channel_holder.set(None)  # This should close the open connection, if any
@@ -18,7 +19,7 @@ class DataProtocol:
     async def enter_passive_mode(self):
         if self.server is None:
             self.server = await self._create_server()
-        return get_server_address_and_port(self.server)
+        return get_server_endpoint(self.server)
 
     async def _create_server(self):
         port = self.port

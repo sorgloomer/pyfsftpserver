@@ -15,8 +15,10 @@ AIO_EXECUTOR = AioExecutor()
 
 
 class ThreadedExecutor(AioExecutor):
-    def __init__(self):
-        self._executor = ThreadPoolExecutor(max_workers=1)
+    def __init__(self, executor=None):
+        if executor is None:
+            executor = ThreadPoolExecutor(max_workers=1)
+        self._executor = executor
 
     async def run(self, fn):
         return await asyncio.get_running_loop().run_in_executor(self._executor, fn)

@@ -2,6 +2,9 @@ import logging
 from asyncio import StreamReader
 from typing import Optional, Iterable
 
+from pyfsftpserver.base.utils import IpEndpoint
+
+from pyfsftpserver.base.prorocols.data_channel import DataProtocol
 from .mlsx_format import MlsxFormatter, FileListFormatter, ListFormatter
 from ..messages import Reply, UnknownCommandReply
 from ..shell import FtpShell, DirectoryNotEmpty, FileInfo
@@ -15,7 +18,6 @@ class ShellHandlerMixin:
 
     mlsx_formatter = MlsxFormatter()
     list_formatter = FileListFormatter()
-    features = ("MLSD", "MLST")
 
     async def do_cmd_cwd(self, path):
         newcwd = await self.shell.change_dir(path)
@@ -28,9 +30,6 @@ class ShellHandlerMixin:
     async def do_cmd_pwd(self, arg):
         cwd = await self.shell.get_cwd()
         return Reply("200", cwd)
-
-    async def do_cmd_feat(self, path):
-        return Reply("211", "ok", items=self.features)
 
     async def do_cmd_list(self, path):
         return await self._relpy_files(path, self.list_formatter)
@@ -82,29 +81,33 @@ class ShellHandlerMixin:
             yield chunk
 
 
-class CommandHandler(ShellHandlerMixin):
-    def __init__(self, data_protocol, implementation_context):
-        self.implementation_context = implementation_context
-        self.shell = None
-        self.data_protocol = data_protocol
-        self._pending_user = None
-        self.running = True
-
-    async def process(self, cmd, arg) -> Reply:
-        handler = getattr(self, f"do_cmd_{cmd}", None)
-        if handler is None:
-            return UnknownCommandReply(cmd)
-        try:
-            return await handler(arg)
-        except Exception as ex:
-            logger.exception(f"Error while processing command {cmd}", ex)
-            return Reply("451", f"internal error during command {cmd}: {ex}")
+class ConnectionHandlerMixin:
+    features: Iterable[str]
+    system_string: str
+    data_protocol: DataProtocol
+    implementation_context: 'CommandChannelContext'
+    running: bool
+    shell: Optional[FtpShell]
+    command_local_endpoint: IpEndpoint
+    _pending_user: Optional[str]
 
     async def do_cmd_pasv(self, arg):
-        info = await self.data_protocol.enter_passive_mode()
-        addr = info.address.replace('.', ",")  # TODO: ipv6?
-        port = f"{info.port // 256},{info.port % 256}"
+        if self.data_protocol.freeze_epsv:
+            return Reply("520", f"Only EPSV data connection commands are allowed, EPSV ALL was already calledc")
+
+        data_info = await self.data_protocol.enter_passive_mode()
+        addr = self.command_local_endpoint.address.replace('.', ",")  # TODO: ipv6? Why is TotalCommander not using EPSV?
+        port = f"{data_info.port // 256},{data_info.port % 256}"
         return Reply("227", f"Entering passive mode {addr},{port}")
+
+    async def do_cmd_epsv(self, arg):
+        if arg == 'ALL':
+            self.data_protocol.freeze_epsv = True
+            return Reply("200", f"Entered EPSV exclusive mode, rejecting all other data connection setup commands")
+        if arg:
+            return Reply("500", f"Protocol parameter not supported yet.")
+        info = await self.data_protocol.enter_passive_mode()
+        return Reply("229", f"Entering Extended Passive Mode  (|||{info.port}|)")
 
     async def do_cmd_user(self, arg):
         self._pending_user = arg
@@ -116,13 +119,52 @@ class CommandHandler(ShellHandlerMixin):
         return Reply("221", "goodbye")
 
     async def do_cmd_syst(self, arg):
-        return Reply("215", "unix python")
+        return Reply("215", self.system_string)
 
     async def do_cmd_type(self, arg):
-        return Reply("300", "TODO type command is not handled yet")
+        if arg != 'A':
+            return Reply("500", "Only TYPE A is supported")
+        return Reply("200", "TYPE is now ASCII")
 
     async def do_cmd_port(self, arg):
         return Reply("500", "active mode not supported")
+
+    async def do_cmd_feat(self, path):
+        return Reply("211", "OK", items=self.features)
+
+    async def do_cmd_opts(self, opt: Optional[str]):
+        if not opt:
+            return Reply("211", "OK")
+        if opt.upper() == 'UTF8 ON':
+            return Reply("211", "OK")
+        return Reply("502", "Option not supported")
+
+    def _close_shell(self):
+        pass
+
+
+class CommandHandler(ShellHandlerMixin, ConnectionHandlerMixin):
+    system_string = "unix python pyfsftpserver"
+    features = ("MLSD", "MLST", "PASV", "EPSV", "EPRT", "UTF8")
+    running: bool
+
+    def __init__(self, data_protocol, command_local_endpoint, implementation_context):
+        self.implementation_context = implementation_context
+        self.shell = None
+        self.data_protocol = data_protocol
+        self._pending_user = None
+        self.running = True
+        self.command_local_endpoint = command_local_endpoint
+
+    async def process(self, cmd, arg) -> Reply:
+        handler = getattr(self, f"do_cmd_{cmd}", None)
+        if handler is None:
+            return UnknownCommandReply(cmd)
+        try:
+            return await handler(arg)
+        except Exception as ex:
+            logger.exception(f"Error while processing command {cmd}", ex)
+            return Reply("451", f"internal error during command {cmd}: {ex}")
 
     def close(self):
         self._close_shell()
