@@ -2,6 +2,14 @@ Changelog - pyfsftpserver
 =========================
 
 
+NEXT
+------------------
+
+### Bugfixes
+
+ * Previous version reported it handles UTF-8, but it didn't. Changed default encoding to UTF-8.
+
+
 v0.1.0 - 2020.12.04
 ------------------
 

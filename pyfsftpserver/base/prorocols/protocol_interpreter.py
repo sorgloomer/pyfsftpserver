@@ -9,7 +9,7 @@ from ..utils import IpEndpoint
 logger = logging.getLogger(__name__)
 
 
-DEFAULT_ENCODING = 'ascii'
+DEFAULT_ENCODING = 'utf-8'
 
 
 class ProtocolInterpreter:
@@ -36,11 +36,37 @@ class ProtocolInterpreter:
         finally:
             self.close()
 
-    async def _read_and_handle_command(self):
-        line = await self._readline()
+    def _log_error_and_make_reply(self, msg, ex, code="500"):
+        logger.exception(msg, ex)
+        return Reply(code, f"{msg}: {ex}".replace('\r\n', ' '))
+
+    async def _read_command_handle_errors_return_result(self) -> Reply:
+        try:
+            line = await self.command_channel.reader.readuntil(b'\n')
+        except:
+            raise ProtocolInterpreterError("Error while reading command")
+        try:
+            line = line.decode(encoding=self.implementation_context.encoding)
+            line = line.rstrip('\r\n')
+        except:
+            raise ProtocolInterpreterError("Error while decoding command")
+
         logger.info(f"cmd recv  <   {line!r}")
-        result = await self._process_line(line)
-        await self._respond(result)
+        try:
+            return await self._process_line(line)
+        except:
+            raise ProtocolInterpreterError("Error while processing command")
+
+    async def _read_and_handle_command(self):
+        try:
+            reply = await self._read_command_handle_errors_return_result()
+        except Exception as ex:
+            reply = self._log_error_and_make_reply("Error while processing command", ex)
+        try:
+            await self._respond(reply)
+        except Exception as ex:
+            logger.exception("Unknown error while sending reply", ex)
+            await self._respond(Reply("500", "Unknown error while sending reply"))
 
     async def _readline(self):
         line = await self.command_channel.reader.readuntil(b'\n')
@@ -70,7 +96,7 @@ class ProtocolInterpreter:
             yield f" {item}"
         yield f"{reply.code} END"
 
-    async def _respond(self, reply):
+    async def _respond(self, reply: Reply):
         if reply is None:
             reply = Reply.OK
         if reply.payload is not None:
@@ -112,6 +138,10 @@ class ProtocolInterpreter:
 
     def close(self):
         self.controller.close()
+
+
+class ProtocolInterpreterError(Exception):
+    pass
 
 
 class ProtocolInterpreterContext(CommandChannelContext, ABC):
