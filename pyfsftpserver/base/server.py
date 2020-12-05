@@ -9,13 +9,16 @@ from pyfsftpserver.di.context import Context
 
 logger = logging.getLogger(__name__)
 
+DEFAULT_PORT = 2121
+DEFAULT_HOST = "127.0.0.1"
+
 
 class FtpServer(DefaultContextMixin):
     def __init__(self, host=None, port=None):
         if port is None:
-            port = 2121
+            port = DEFAULT_PORT
         if host is None:
-            host = "127.0.0.1"
+            host = DEFAULT_HOST
         self.host = host
         self.port = port
         self.server = None

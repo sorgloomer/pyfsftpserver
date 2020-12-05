@@ -2,8 +2,8 @@ import argparse
 import asyncio
 import logging
 
-from .base.server import print_listening_message
-from .with_pyfs.server import PyfsFtpServer
+from pyfsftpserver import PyfsFtpServer
+from pyfsftpserver.base.server import DEFAULT_HOST, DEFAULT_PORT, print_listening_message
 
 logger = logging.getLogger(__name__)
 
@@ -20,8 +20,8 @@ def main(args=None):
 def make_argparser():
     parser = argparse.ArgumentParser("pyfsftpserver")
     parser.add_argument("url", nargs='?', help="Pyfs url to be served over ftp", default="osfs://.")
-    parser.add_argument("-H", "--host", help="Sets listening host", default="127.0.0.1")
-    parser.add_argument("-p", "--port", help="Sets listening port", default=2121, type=int)
+    parser.add_argument("-H", "--host", help="Sets listening host", default=DEFAULT_HOST)
+    parser.add_argument("-p", "--port", help="Sets listening port", default=DEFAULT_PORT, type=int)
     parser.add_argument(
         "-t", "--threaded", type=str2bool, default=True,
         help="Offload pyfs invocations to a thread per shell [yes, 1, no 0]"
