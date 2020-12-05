@@ -1,27 +1,25 @@
 import asyncio
 import logging
-from abc import ABC
 from asyncio import StreamWriter, StreamReader
 
-from . import utils
-from .context import DefaultImplementationContext
-from .utils import get_server_endpoint, Channel
+from pyfsftpserver.base import utils
+from pyfsftpserver.base.default_context import DefaultContextMixin
+from pyfsftpserver.base.utils import get_server_endpoint, Channel, IpEndpoint
+from pyfsftpserver.di.context import Context
 
 logger = logging.getLogger(__name__)
 
 
-class FtpServer(DefaultImplementationContext, ABC):
-    def __init__(self, host=None, port=None, implementation_context=None):
+class FtpServer(DefaultContextMixin):
+    def __init__(self, host=None, port=None):
         if port is None:
             port = 2121
         if host is None:
             host = "127.0.0.1"
-        if implementation_context is None:
-            implementation_context = self
-        self.port = port
         self.host = host
+        self.port = port
         self.server = None
-        self.implementation_context = implementation_context
+        self.context_def = self
 
     async def run(self, on_before_listening=None):
         await self._setup()
@@ -49,14 +47,23 @@ class FtpServer(DefaultImplementationContext, ABC):
 
     async def _handle_client(self, reader: StreamReader, writer: StreamWriter):
         try:
-            channel = Channel(reader=reader, writer=writer)
-            logger.info(f"Client connected {channel.remote_endpoint}")
-            await self.protocol_interpreter_factory(
-                command_channel=channel,
-                host=self.host,
-            ).run()
+            command_channel = Channel(reader=reader, writer=writer)
+            logger.info(f"Client connected {command_channel.remote_endpoint}")
+            context = self._make_context(command_channel=command_channel)
+            protocol_interpreter = context['protocol_interpreter']
+            await protocol_interpreter.run()
         except Exception as ex:
             logger.exception("Uncaught error during handling client connection", ex)
+
+    def _make_context(self, command_channel):
+        parent = {
+            'command_channel': command_channel,
+            'data_endpoint_config': IpEndpoint(address=self.host, port=None),
+        }
+        return Context(
+            context_def=self.context_def,
+            parent=parent,
+        )
 
 
 def print_listening_message(server: FtpServer):

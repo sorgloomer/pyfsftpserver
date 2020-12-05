@@ -21,10 +21,7 @@ def make_argparser():
     parser = argparse.ArgumentParser("pyfsftpserver")
     parser.add_argument("url", nargs='?', help="Pyfs url to be served over ftp", default="osfs://.")
     parser.add_argument("-H", "--host", help="Sets listening host", default="127.0.0.1")
-    parser.add_argument("-p", "--port", help="Sets listening port", default=21, type=int)
-    parser.add_argument(
-        "-A", "--anonymous", help="Allows anonymous connections", default=False, action="store_true"
-    )
+    parser.add_argument("-p", "--port", help="Sets listening port", default=2121, type=int)
     parser.add_argument(
         "-t", "--threaded", type=str2bool, default=True,
         help="Offload pyfs invocations to a thread per shell [yes, 1, no 0]"

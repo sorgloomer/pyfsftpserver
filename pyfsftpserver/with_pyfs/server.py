@@ -1,6 +1,5 @@
-from ..base.server import FtpServer
-
 from .shell import PyfsFtpShell
+from ..base.server import FtpServer
 
 
 class PyfsFtpServer(FtpServer):
@@ -11,5 +10,5 @@ class PyfsFtpServer(FtpServer):
         self.pyfs_url = pyfs_url
         self.threaded = threaded
 
-    async def shell_factory(self, username):
+    async def create_shell(self, username):
         return PyfsFtpShell(self.pyfs_url, threaded=self.threaded)

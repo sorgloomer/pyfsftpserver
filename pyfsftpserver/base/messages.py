@@ -10,6 +10,8 @@ class ReplyBase:
 
 
 class Reply(ReplyBase):
+    OK: 'Reply'
+
     def __init__(self, code="200", text="OK", payload=None, sink=None, items=None):
         self.code = code
         self.text = text

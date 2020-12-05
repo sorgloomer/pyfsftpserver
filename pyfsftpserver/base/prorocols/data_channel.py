@@ -1,15 +1,15 @@
 import asyncio
 
-from ..utils import ChannelHolder, get_server_endpoint, Channel
+from pyfsftpserver.base.utils import IpEndpoint, ChannelHolder, get_server_endpoint, Channel
 
 
 class DataProtocol:
-    def __init__(self, host, port=None):
+    def __init__(self, ctx):
         self.server = None
-        self.host = host
-        self.port = port
+        data_endpoint_config: IpEndpoint = ctx['data_endpoint_config']
+        self.host = data_endpoint_config.address
+        self.port = data_endpoint_config.port
         self.channel_holder = ChannelHolder()
-        self.freeze_epsv = False
 
     def close(self):
         self.channel_holder.set(None)  # This should close the open connection, if any

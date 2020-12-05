@@ -1,10 +1,6 @@
 import logging
-from abc import ABC
 
-from pyfsftpserver.base.prorocols.data_channel import DataProtocol
-from .command_channel import CommandChannelContext
 from ..messages import Reply, Command
-from ..utils import IpEndpoint
 
 logger = logging.getLogger(__name__)
 
@@ -13,25 +9,17 @@ DEFAULT_ENCODING = 'utf-8'
 
 
 class ProtocolInterpreter:
-    implementation_context: 'ProtocolInterpreterContext'
-
-    def __init__(self, command_channel, host, implementation_context: 'ProtocolInterpreterContext'):
-        self.command_channel = command_channel
-        self.host = host
-
-        self.data_protocol = implementation_context.data_protocol_factory(
-            host=host,
-        )
-        self.controller = implementation_context.command_protocol_factory(
-            data_protocol=self.data_protocol,
-            command_local_endpoint=command_channel.local_endpoint,
-        )
-        self.implementation_context = implementation_context
+    def __init__(self, ctx):
+        self.data_protocol = ctx['data_protocol']
+        self.command_channel = ctx['command_channel']
+        self.command_protocol = ctx['command_protocol']
+        self.command_handler = ctx['command_handler']
+        self.protocol_config = ctx['protocol_config']
 
     async def run(self):
         try:
             await self._respond(Reply("220", "awaiting input"))
-            while self.controller.running:
+            while self.command_handler.running:
                 await self._read_and_handle_command()
         finally:
             self.close()
@@ -46,7 +34,7 @@ class ProtocolInterpreter:
         except:
             raise ProtocolInterpreterError("Error while reading command")
         try:
-            line = line.decode(encoding=self.implementation_context.encoding)
+            line = line.decode(encoding=self.protocol_config.encoding)
             line = line.rstrip('\r\n')
         except:
             raise ProtocolInterpreterError("Error while decoding command")
@@ -70,7 +58,7 @@ class ProtocolInterpreter:
 
     async def _readline(self):
         line = await self.command_channel.reader.readuntil(b'\n')
-        line = line.decode(encoding=self.implementation_context.encoding)
+        line = line.decode(encoding=self.protocol_config.encoding)
         return line.rstrip('\r\n')
 
     async def _process_line(self, line):
@@ -84,7 +72,7 @@ class ProtocolInterpreter:
         return Command(cmd=cmd.lower(), arg=arg)
 
     async def _process_command(self, cmd: Command):
-        return await self.controller.process(cmd.cmd, cmd.arg)
+        return await self.command_protocol.process(cmd.cmd, cmd.arg)
 
     def _format_reply(self, reply):
         Reply.validate(reply)
@@ -130,23 +118,15 @@ class ProtocolInterpreter:
 
     async def _write_command_line(self, data: str):
         logger.info(f"cmd send >    {data!r}")
-        data = data.encode(encoding=self.implementation_context.encoding)
+        data = data.encode(encoding=self.protocol_config.encoding)
         writer = self.command_channel.writer
         writer.write(data)
         writer.write(b"\r\n")
         await writer.drain()
 
     def close(self):
-        self.controller.close()
+        self.command_handler.close()
 
 
 class ProtocolInterpreterError(Exception):
     pass
-
-
-class ProtocolInterpreterContext(CommandChannelContext, ABC):
-    def data_protocol_factory(self, host):
-        raise NotImplementedError()
-
-    def command_protocol_factory(self, data_protocol: DataProtocol, command_local_endpoint: IpEndpoint):
-        raise NotImplementedError()
