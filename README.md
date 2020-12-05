@@ -57,7 +57,6 @@ https://github.com/sorgloomer/pyfsftpserver/blob/master/CHANGELOG.md
 TODOs
 -----
 
- * Release to PyPI
  * Implement IPv6 extensions by rfc2428
  * Implement more extensions from rfc3659 like mdmt etc...
 
