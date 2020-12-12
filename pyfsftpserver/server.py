@@ -44,12 +44,17 @@ def parse_args():
 
 
 async def serve(args):
-    await PyfsFtpServer(
+    server = PyfsFtpServer(
         host=args.host,
         port=args.port,
         pyfs_url=args.url,
         threaded=args.threaded,
-    ).run(on_before_listening=print_listening_message)
+    )
+    await run_server(server)
+
+
+async def run_server(server):
+    await server.run(on_before_listening=print_listening_message)
 
 
 if __name__ == "__main__":
